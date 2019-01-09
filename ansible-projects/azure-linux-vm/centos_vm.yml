@@ -54,7 +54,7 @@
             priority: 1001
             direction: Inbound
 
-    - name: Create virtual network inteface card
+    - name: Create virtual network interface card
       azure_rm_networkinterface:
         resource_group: "{{ az_resource_group_name }}"
         name: "{{ az_nic_name }}"
