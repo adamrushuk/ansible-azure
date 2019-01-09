@@ -4,7 +4,7 @@
 echo "INFO: Started Installing Docker..."
 
 # Remove older versions
-yum -y remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine
+# yum -y remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-selinux docker-engine-selinux docker-engine
 
 # Set up repo
 yum -y install yum-utils device-mapper-persistent-data lvm2
