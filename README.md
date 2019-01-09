@@ -50,7 +50,7 @@ and note down the `SUBSCRIPTION ID`, `CLIENT ID`, `CLIENT SECRET`, and `TENANT I
     ```powershell
     git clone git@github.com:adamrushuk/ansible-azure.git
     ```
-1. Update your Azure Service Principal credentials in `vagrant\scripts\azure_ansible_credentials.yml`:
+1. Update your Azure Service Principal credentials in `azure_ansible_credentials.yml`:
     ```bash
     # Overwrite these example values below
     subscription: "aaaa1111-bbbb-cccc-abcd-aaabbbcccddd"
