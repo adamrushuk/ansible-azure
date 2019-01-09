@@ -1,0 +1,87 @@
+---
+- name: Create Azure VM
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    az_resource_group_name: "centos-rg"
+    az_location_name: "eastus2"
+    az_vnet_name: "centos-vnet"
+    az_vnet_address_prefixes: "10.0.0.0/16"
+    az_subnet_name: "centos-subnet"
+    az_subnet_address_prefix: "10.0.1.0/24"
+    az_public_ipaddress_name: "centos-public-ip"
+    az_nsg_name: "centos-network-security-group"
+    az_nic_name: "centos-nic"
+    az_vm_name: "centos01"
+    az_vm_admin_name: "azureuser"
+
+  tasks:
+    - name: Create resource group
+      azure_rm_resourcegroup:
+        name: "{{ az_resource_group_name }}"
+        location: "{{ az_location_name }}"
+
+    - name: Create virtual network
+      azure_rm_virtualnetwork:
+        resource_group: "{{ az_resource_group_name }}"
+        name: "{{ az_vnet_name }}"
+        address_prefixes: "{{ az_vnet_address_prefixes }}"
+
+    - name: Add subnet
+      azure_rm_subnet:
+        resource_group: "{{ az_resource_group_name }}"
+        name: "{{ az_subnet_name }}"
+        address_prefix: "{{ az_subnet_address_prefix }}"
+        virtual_network: "{{ az_vnet_name }}"
+
+    - name: Create public IP address
+      azure_rm_publicipaddress:
+        resource_group: "{{ az_resource_group_name }}"
+        allocation_method: Static
+        name: "{{ az_public_ipaddress_name }}"
+      register: output_ip_address
+
+    - name: Create Network Security Group that allows SSH
+      azure_rm_securitygroup:
+        resource_group: "{{ az_resource_group_name }}"
+        name: "{{ az_nsg_name }}"
+        rules:
+          - name: SSH
+            protocol: Tcp
+            destination_port_range: 22
+            access: Allow
+            priority: 1001
+            direction: Inbound
+
+    - name: Create virtual network interface card
+      azure_rm_networkinterface:
+        resource_group: "{{ az_resource_group_name }}"
+        name: "{{ az_nic_name }}"
+        virtual_network: "{{ az_vnet_name }}"
+        subnet: "{{ az_subnet_name }}"
+        public_ip_name: "{{ az_public_ipaddress_name }}"
+        security_group: "{{ az_nsg_name }}"
+
+    - name: Create VM
+      azure_rm_virtualmachine:
+        resource_group: "{{ az_resource_group_name }}"
+        name: "{{ az_vm_name }}"
+        vm_size: Standard_DS1_v2
+        admin_username: "{{ az_vm_admin_name }}"
+        ssh_password_enabled: false
+        ssh_public_keys:
+          - path: "/home/{{ az_vm_admin_name }}/.ssh/authorized_keys"
+            key_data: "{{ ssh_public_key }}"
+        network_interfaces: "{{ az_nic_name }}"
+        image:
+          offer: CentOS
+          publisher: OpenLogic
+          sku: "7.5"
+          version: latest
+
+    - name: Dump public IP for VM
+      debug:
+        msg:
+          - "The public IP is {{ output_ip_address.state.ip_address }}"
+          - "Connect using: ssh {{ az_vm_admin_name }}@{{ output_ip_address.state.ip_address }}"
