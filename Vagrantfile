@@ -51,6 +51,8 @@ Vagrant.configure('2') do |config|
     subconfig.vm.provision 'shell', path: 'vagrant/scripts/install_docker_ce.sh'
     # Install Ansible AWX
     subconfig.vm.provision 'shell', path: 'vagrant/scripts/install_ansible_awx.sh'
+    # Configure Ansible AWX
+    subconfig.vm.provision 'shell', path: 'vagrant/scripts/configure_ansible_awx.sh'
   end
 
 end
