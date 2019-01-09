@@ -8,6 +8,8 @@ awx_projects_source_folder="/vagrant/ansible-projects/"
 awx_projects_dest_folder="/var/lib/awx/projects"
 azure_credential_file_path="/vagrant/vagrant/scripts/azure_ansible_credentials.yml"
 ssh_public_key_path="$HOME/.ssh/id_rsa.pub"
+awx_http_port_check=80
+awx_demo_data_import_check="tower-cli instance_group get tower 2> /dev/null"
 
 # Create SSH key
 if [ ! -f "$ssh_public_key_path" ]
@@ -32,6 +34,22 @@ tower-cli config verify_ssl false
 tower-cli config username $awx_username
 tower-cli config password $awx_password
 
+# Wait for AWX Web Server to be online
+while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:$awx_http_port_check)" -ne "200" ]]; do
+    echo "INFO: AWX Web Server NOT online yet...waiting 30 seconds"
+    sleep 30
+done
+echo "INFO: AWX Web Server now online...READY"
+
+# Wait for AWX Demo Data import to finish
+eval $awx_demo_data_import_check
+while [[ $? -ne 0 ]]; do
+    echo "INFO: AWX Data Import not complete yet...waiting 5 seconds"
+    sleep 5
+    eval $awx_demo_data_import_check
+done
+echo "INFO: AWX Data Import now complete"
+
 # Copy projects folder
 if [ -d "$awx_projects_source_folder" ]
 then
@@ -46,9 +64,7 @@ echo -e "\nINFO: Creating Azure Project in AWX..."
 tower-cli project create --name "Azure Project" --description "Azure Playbooks" --scm-type "manual" --local-path "azure-linux-vm" --organization "Default"
 
 # Create Azure inventory
-# TODO: add var for public ssh"$HOME/.ssh/id_rsa.pub"
 echo -e "\nINFO: Creating Azure Inventory in AWX..."
-
 tower-cli inventory create --name "Azure Inventory" --description "Azure Inventory" --organization "Default" --variables "ssh_public_key: \"$ssh_public_key\""
 
 # Create Azure credential
