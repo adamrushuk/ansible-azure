@@ -71,7 +71,7 @@
         admin_username: "{{ az_vm_admin_name }}"
         ssh_password_enabled: false
         ssh_public_keys:
-          - path: /home/"{{ az_vm_admin_name }}"/.ssh/authorized_keys
+          - path: "/home/{{ az_vm_admin_name }}/.ssh/authorized_keys"
             key_data: "{{ ssh_public_key }}"
         network_interfaces: "{{ az_nic_name }}"
         image:
@@ -82,6 +82,6 @@
 
     - name: Dump public IP for VM
       debug:
-        msg: |
-          The public IP is "{{ output_ip_address.state.ip_address }}"
-          Connect using:: ssh "{{ az_vm_admin_name }}"@"{{ output_ip_address.state.ip_address }}"
+        msg:
+          - "The public IP is {{ output_ip_address.state.ip_address }}"
+          - "Connect using: ssh {{ az_vm_admin_name }}@{{ output_ip_address.state.ip_address }}"
